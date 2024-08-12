@@ -1,4 +1,4 @@
-const { Client, LocalAuth } = require("whatsapp-web.js");
+const { Client, MessageMedia, LocalAuth } = require("whatsapp-web.js");
 const fs = require("fs");
 const express = require("express");
 const qrcode = require("qrcode");
@@ -7,6 +7,10 @@ const http = require("http");
 require("dotenv").config();
 const { phoneNumberFormatter } = require("./helpers/formatter");
 const { body, validationResult } = require("express-validator");
+const fileUpload = require("express-fileupload");
+const axios = require("axios");
+const multer = require("multer");
+const path = require("path");
 
 const port = process.env.PORT;
 
@@ -142,6 +146,43 @@ app.post(
       });
   }
 );
+
+const upload = multer({ dest: "uploads/" });
+
+// Send media
+app.post("/send-media", upload.single("file"), async (req, res) => {
+  try {
+    const phone = req.body.phone;
+    const file = req.file;
+
+    const extension = path.extname(file.originalname);
+    const newFileName = `${file.filename}${extension}`;
+    const newFilePath = path.join(file.destination, newFileName);
+
+    fs.renameSync(file.path, newFilePath);
+    console.log("New File Path:", newFilePath);
+
+    const formattedPhone = phoneNumberFormatter(phone);
+    console.log(formattedPhone);
+
+    // if (!client.isConnected()) {
+    //   throw new Error("WhatsApp session is not connected");
+    // }
+
+    const media = MessageMedia.fromFilePath(newFilePath);
+    console.log("Sending media:", media);
+
+    // Cek status koneksi dan log objek client
+    // console.log("Client:", client);
+
+    await client.sendMessage(formattedPhone, media, {caption: "haloo"});
+    res.json({ message: "Media sent successfully" });
+  } catch (error) {
+    console.error("Error details:", error);
+    res.status(500).json({ error: "Failed to send media: " + error.message });
+  }
+});
+
 
 server.listen(port, () => {
   console.log("App listen on port ", port);

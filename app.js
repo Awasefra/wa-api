@@ -88,6 +88,11 @@ io.on("connection", (socket) => {
   });
 });
 
+const checkRegisteredNumber = async function (number) {
+  const isRegistered = await client.isRegisteredUser(number);
+  return isRegistered;
+};
+
 // send message routing
 app.post(
   "/send",
@@ -105,6 +110,15 @@ app.post(
     }
     const phone = phoneNumberFormatter(req.body.phone);
     const message = req.body.message;
+
+    const isRegisteredNumber = await checkRegisteredNumber(phone);
+
+    if (!isRegisteredNumber) {
+      return res.status(422).json({
+        status: false,
+        message: "The number is not registered",
+      });
+    }
 
     client
       .sendMessage(phone, message)

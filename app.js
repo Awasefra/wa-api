@@ -66,12 +66,23 @@ var now = today.toLocaleString();
 io.on("connection", (socket) => {
   socket.emit("message", `${now} Connected`);
 
-  client.on("qr", (qr) => {
-    qrcode.toDataURL(qr, (err, url) => {
-      socket.emit("qr", url);
-      socket.emit("message", `${now} QR Code received`);
+  // Hanya kirim QR jika tidak ada sesi yang aktif
+  if (!client.info) {
+    client.on("qr", (qr) => {
+      qrcode.toDataURL(qr, (err, url) => {
+        socket.emit("qr", url);
+        socket.emit(
+          "message",
+          `${new Date().toLocaleString()} QR Code received`
+        );
+      });
     });
-  });
+  } else {
+    socket.emit(
+      "message",
+      `${new Date().toLocaleString()} Already authenticated, no QR Code needed`
+    );
+  }
 
   client.on("ready", () => {
     socket.emit("message", `${now} WhatsApp is ready!`);
@@ -175,14 +186,13 @@ app.post("/send-media", upload.single("file"), async (req, res) => {
     // Cek status koneksi dan log objek client
     // console.log("Client:", client);
 
-    await client.sendMessage(formattedPhone, media, {caption: "haloo"});
+    await client.sendMessage(formattedPhone, media, { caption: "haloo" });
     res.json({ message: "Media sent successfully" });
   } catch (error) {
     console.error("Error details:", error);
     res.status(500).json({ error: "Failed to send media: " + error.message });
   }
 });
-
 
 server.listen(port, () => {
   console.log("App listen on port ", port);

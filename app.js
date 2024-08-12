@@ -4,8 +4,9 @@ const express = require("express");
 const qrcode = require("qrcode");
 const socketIO = require("socket.io");
 const http = require("http");
+require('dotenv').config()
 
-const port = process.env.PORT || 8000;
+const port = process.env.PORT;
 
 const app = express();
 const server = http.createServer(app);

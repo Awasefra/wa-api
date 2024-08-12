@@ -5,6 +5,7 @@ const qrcode = require("qrcode");
 const socketIO = require("socket.io");
 const http = require("http");
 require("dotenv").config();
+const { phoneNumberFormatter } = require('./helpers/formatter');
 
 const port = process.env.PORT;
 
@@ -84,6 +85,33 @@ io.on("connection", (socket) => {
     client.destroy();
     client.initialize();
   });
+});
+
+// send message routing
+app.post("/send", (req, res) => {
+  const phone = phoneNumberFormatter(req.body.phone);
+  const message = req.body.message;
+
+  client
+    .sendMessage(phone, message)
+    .then((response) => {
+      res.status(200).json({
+        error: false,
+        data: {
+          message: "Pesan terkirim",
+          meta: response,
+        },
+      });
+    })
+    .catch((error) => {
+      res.status(200).json({
+        error: true,
+        data: {
+          message: "Error send message",
+          meta: error.message,
+        },
+      });
+    });
 });
 
 server.listen(port, () => {

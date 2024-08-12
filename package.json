@@ -16,6 +16,7 @@
     "mongoose": "^8.5.2",
     "qrcode": "^1.5.4",
     "socket.io": "^4.7.5",
-    "whatsapp-web.js": "latest"
+    "whatsapp-web.js": "latest",
+    "wwebjs-mongo": "^1.1.0"
   }
 }

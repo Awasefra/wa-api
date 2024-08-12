@@ -5,7 +5,8 @@ const qrcode = require("qrcode");
 const socketIO = require("socket.io");
 const http = require("http");
 require("dotenv").config();
-const { phoneNumberFormatter } = require('./helpers/formatter');
+const { phoneNumberFormatter } = require("./helpers/formatter");
+const { body, validationResult } = require("express-validator");
 
 const port = process.env.PORT;
 
@@ -88,31 +89,45 @@ io.on("connection", (socket) => {
 });
 
 // send message routing
-app.post("/send", (req, res) => {
-  const phone = phoneNumberFormatter(req.body.phone);
-  const message = req.body.message;
-
-  client
-    .sendMessage(phone, message)
-    .then((response) => {
-      res.status(200).json({
-        error: false,
-        data: {
-          message: "Pesan terkirim",
-          meta: response,
-        },
-      });
-    })
-    .catch((error) => {
-      res.status(200).json({
-        error: true,
-        data: {
-          message: "Error send message",
-          meta: error.message,
-        },
-      });
+app.post(
+  "/send",
+  [body("phone").notEmpty(), body("message").notEmpty()],
+  async (req, res) => {
+    const errors = validationResult(req).formatWith(({ msg }) => {
+      return msg;
     });
-});
+
+    if (!errors.isEmpty()) {
+      return res.status(422).json({
+        status: false,
+        message: errors.mapped(),
+      });
+    }
+    const phone = phoneNumberFormatter(req.body.phone);
+    const message = req.body.message;
+
+    client
+      .sendMessage(phone, message)
+      .then((response) => {
+        res.status(200).json({
+          error: false,
+          data: {
+            message: "Pesan terkirim",
+            meta: response,
+          },
+        });
+      })
+      .catch((error) => {
+        res.status(200).json({
+          error: true,
+          data: {
+            message: "Error send message",
+            meta: error.message,
+          },
+        });
+      });
+  }
+);
 
 server.listen(port, () => {
   console.log("App listen on port ", port);

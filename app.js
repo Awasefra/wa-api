@@ -4,7 +4,7 @@ const express = require("express");
 const qrcode = require("qrcode");
 const socketIO = require("socket.io");
 const http = require("http");
-require('dotenv').config()
+require("dotenv").config();
 
 const port = process.env.PORT;
 
@@ -71,7 +71,7 @@ io.on("connection", (socket) => {
     socket.emit("message", `${now} WhatsApp is ready!`);
   });
 
-  client.on("authenticated", (session) => {
+  client.on("authenticated", () => {
     socket.emit("message", `${now} Whatsapp is authenticated!`);
   });
 

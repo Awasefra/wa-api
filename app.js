@@ -162,8 +162,8 @@ const upload = multer({ dest: "uploads/" });
 
 // Send media
 app.post("/send-media", upload.single("file"), async (req, res) => {
-
   const phone = req.body.phone;
+  const caption = req.body.message;
   const file = req.file;
 
   const extension = path.extname(file.originalname);
@@ -180,7 +180,7 @@ app.post("/send-media", upload.single("file"), async (req, res) => {
     const media = MessageMedia.fromFilePath(newFilePath);
     // console.log("Sending media:", media);
 
-    await client.sendMessage(formattedPhone, media, { caption: "haloo" });
+    await client.sendMessage(formattedPhone, media, { caption: caption });
 
     res.json({ message: "Media sent successfully" });
   } catch (error) {

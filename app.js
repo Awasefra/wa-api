@@ -162,35 +162,40 @@ const upload = multer({ dest: "uploads/" });
 
 // Send media
 app.post("/send-media", upload.single("file"), async (req, res) => {
+
+  const phone = req.body.phone;
+  const file = req.file;
+
+  const extension = path.extname(file.originalname);
+  const newFileName = `${file.filename}${extension}`;
+  const newFilePath = path.join(file.destination, newFileName);
+
   try {
-    const phone = req.body.phone;
-    const file = req.file;
-
-    const extension = path.extname(file.originalname);
-    const newFileName = `${file.filename}${extension}`;
-    const newFilePath = path.join(file.destination, newFileName);
-
     fs.renameSync(file.path, newFilePath);
-    console.log("New File Path:", newFilePath);
+    // console.log("New File Path:", newFilePath);
 
     const formattedPhone = phoneNumberFormatter(phone);
-    console.log(formattedPhone);
-
-    // if (!client.isConnected()) {
-    //   throw new Error("WhatsApp session is not connected");
-    // }
+    // console.log(formattedPhone);
 
     const media = MessageMedia.fromFilePath(newFilePath);
-    console.log("Sending media:", media);
-
-    // Cek status koneksi dan log objek client
-    // console.log("Client:", client);
+    // console.log("Sending media:", media);
 
     await client.sendMessage(formattedPhone, media, { caption: "haloo" });
+
     res.json({ message: "Media sent successfully" });
   } catch (error) {
     console.error("Error details:", error);
     res.status(500).json({ error: "Failed to send media: " + error.message });
+  } finally {
+    // Delete the file after sending or even if there's an error
+    try {
+      if (fs.existsSync(newFilePath)) {
+        fs.unlinkSync(newFilePath);
+        console.log("File deleted:", newFilePath);
+      }
+    } catch (unlinkError) {
+      console.error("Failed to delete file:", unlinkError);
+    }
   }
 });
 

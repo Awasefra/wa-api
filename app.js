@@ -7,8 +7,6 @@ const http = require("http");
 require("dotenv").config();
 const { phoneNumberFormatter } = require("./helpers/formatter");
 const { body, validationResult } = require("express-validator");
-const fileUpload = require("express-fileupload");
-const axios = require("axios");
 const multer = require("multer");
 const path = require("path");
 
